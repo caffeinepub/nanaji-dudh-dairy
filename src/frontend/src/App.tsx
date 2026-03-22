@@ -9,6 +9,7 @@ import {
 import FloatingWhatsApp from "./components/FloatingWhatsApp";
 import Footer from "./components/Footer";
 import Navbar from "./components/Navbar";
+import { CartProvider } from "./context/CartContext";
 import Contact from "./pages/Contact";
 import Home from "./pages/Home";
 import Products from "./pages/Products";
@@ -57,5 +58,9 @@ declare module "@tanstack/react-router" {
 }
 
 export default function App() {
-  return <RouterProvider router={router} />;
+  return (
+    <CartProvider>
+      <RouterProvider router={router} />
+    </CartProvider>
+  );
 }

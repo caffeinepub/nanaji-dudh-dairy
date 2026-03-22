@@ -1,6 +1,10 @@
+import { Button } from "@/components/ui/button";
+import { ShoppingCart } from "lucide-react";
 import { motion } from "motion/react";
 import { SiWhatsapp } from "react-icons/si";
+import { toast } from "sonner";
 import type { Product } from "../backend.d";
+import { useCart } from "../context/CartContext";
 
 interface ProductCardProps {
   product: Product;
@@ -28,13 +32,25 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
     product.imageUrl ||
     FALLBACK_IMAGES[product.category] ||
     "/assets/generated/buffalo-milk.dim_400x400.jpg";
+  const { addItem, setIsOpen } = useCart();
+
+  const handleAddToCart = () => {
+    if (!product.isAvailable) return;
+    addItem(product);
+    toast.success(`${product.name} added to cart!`, {
+      action: {
+        label: "View Cart",
+        onClick: () => setIsOpen(true),
+      },
+    });
+  };
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.08, duration: 0.4 }}
-      className="bg-card rounded-2xl overflow-hidden shadow-card hover:shadow-card-hover transition-shadow group"
+      className="bg-card rounded-2xl overflow-hidden shadow-card hover:shadow-card-hover transition-shadow group border border-border/50"
       data-ocid={`products.item.${index + 1}`}
     >
       <div className="relative overflow-hidden aspect-square bg-section-bg">
@@ -50,14 +66,14 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
           }}
         />
         {!product.isAvailable && (
-          <div className="absolute inset-0 bg-foreground/50 flex items-center justify-center">
-            <span className="bg-white text-foreground text-xs font-semibold px-3 py-1 rounded-full">
+          <div className="absolute inset-0 bg-background/70 flex items-center justify-center">
+            <span className="bg-card text-foreground text-xs font-semibold px-3 py-1 rounded-full border border-border">
               Out of Stock
             </span>
           </div>
         )}
         <div className="absolute top-3 left-3">
-          <span className="bg-brand-purple text-white text-xs font-semibold px-2.5 py-1 rounded-full">
+          <span className="bg-brand-purple text-saffron text-xs font-semibold px-2.5 py-1 rounded-full">
             {product.category}
           </span>
         </div>
@@ -73,24 +89,34 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
 
         <div className="flex items-center justify-between mb-3">
           <div>
-            <span className="text-2xl font-bold text-brand-purple">
-              ₹{price}
-            </span>
+            <span className="text-2xl font-bold text-saffron">₹{price}</span>
             <span className="text-muted-foreground text-sm ml-1">
               /{product.unit}
             </span>
           </div>
         </div>
 
+        {/* Add to Cart - primary action */}
+        <Button
+          onClick={handleAddToCart}
+          disabled={!product.isAvailable}
+          className="w-full mb-2 bg-saffron hover:bg-saffron/90 text-background rounded-xl font-semibold gap-2"
+          data-ocid={`products.primary_button.${index + 1}`}
+        >
+          <ShoppingCart className="w-4 h-4" />
+          Add to Cart
+        </Button>
+
+        {/* WhatsApp - secondary */}
         <a
           href={buildWhatsAppUrl(product)}
           target="_blank"
           rel="noopener noreferrer"
-          data-ocid={`products.primary_button.${index + 1}`}
-          className={`flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-xl text-sm font-semibold transition-all ${
+          data-ocid={`products.secondary_button.${index + 1}`}
+          className={`flex items-center justify-center gap-2 w-full py-2 px-4 rounded-xl text-sm font-medium transition-all border ${
             product.isAvailable
-              ? "bg-brand-purple text-white hover:bg-brand-purple-light"
-              : "bg-muted text-muted-foreground cursor-not-allowed pointer-events-none"
+              ? "border-brand-purple/50 text-foreground/80 hover:bg-brand-purple/10 hover:text-saffron"
+              : "border-muted text-muted-foreground cursor-not-allowed pointer-events-none"
           }`}
         >
           <SiWhatsapp className="w-4 h-4" />

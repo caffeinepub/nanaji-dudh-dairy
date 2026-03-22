@@ -82,8 +82,8 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       boxShadow: {
-        card: "0 2px 16px 0 rgba(75,29,115,0.08)",
-        "card-hover": "0 8px 32px 0 rgba(75,29,115,0.16)",
+        card: "0 2px 16px 0 rgba(120,20,30,0.08)",
+        "card-hover": "0 8px 32px 0 rgba(120,20,30,0.16)",
         xs: "0 1px 2px 0 rgba(0,0,0,0.05)",
       },
       keyframes: {
