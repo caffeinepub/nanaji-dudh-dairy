@@ -101,10 +101,12 @@ export interface Product {
     isAvailable: boolean;
     description: string;
     imageUrl: string;
+    quantity: bigint;
     category: string;
     price: bigint;
 }
 export interface backendInterface {
+    addProduct(name: string, description: string, price: bigint, unit: string, category: string, imageUrl: string, quantity: bigint): Promise<bigint>;
     getAllContactSubmissions(): Promise<Array<ContactSubmission>>;
     getAllProducts(): Promise<Array<Product>>;
     getProductById(id: bigint): Promise<Product>;
@@ -113,6 +115,20 @@ export interface backendInterface {
 }
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
+    async addProduct(arg0: string, arg1: string, arg2: bigint, arg3: string, arg4: string, arg5: string, arg6: bigint): Promise<bigint> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.addProduct(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.addProduct(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
+            return result;
+        }
+    }
     async getAllContactSubmissions(): Promise<Array<ContactSubmission>> {
         if (this.processError) {
             try {

@@ -22,10 +22,15 @@ export interface Product {
   'isAvailable' : boolean,
   'description' : string,
   'imageUrl' : string,
+  'quantity' : bigint,
   'category' : string,
   'price' : bigint,
 }
 export interface _SERVICE {
+  'addProduct' : ActorMethod<
+    [string, string, bigint, string, string, string, bigint],
+    bigint
+  >,
   'getAllContactSubmissions' : ActorMethod<[], Array<ContactSubmission>>,
   'getAllProducts' : ActorMethod<[], Array<Product>>,
   'getProductById' : ActorMethod<[bigint], Product>,

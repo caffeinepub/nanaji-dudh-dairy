@@ -138,7 +138,7 @@ export default function Home() {
         <div
           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
           style={{
-            backgroundImage: `url('/assets/generated/hero-farm-family.dim_1200x600.jpg')`,
+            backgroundImage: `url('/assets/generated/hero-dairy-farm-golden.dim_1200x600.jpg')`,
           }}
         />
         <div className="absolute inset-0 bg-gradient-to-r from-brand-purple/90 via-brand-purple/70 to-transparent" />

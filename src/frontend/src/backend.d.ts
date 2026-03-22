@@ -19,10 +19,12 @@ export interface Product {
     isAvailable: boolean;
     description: string;
     imageUrl: string;
+    quantity: bigint;
     category: string;
     price: bigint;
 }
 export interface backendInterface {
+    addProduct(name: string, description: string, price: bigint, unit: string, category: string, imageUrl: string, quantity: bigint): Promise<bigint>;
     getAllContactSubmissions(): Promise<Array<ContactSubmission>>;
     getAllProducts(): Promise<Array<Product>>;
     getProductById(id: bigint): Promise<Product>;

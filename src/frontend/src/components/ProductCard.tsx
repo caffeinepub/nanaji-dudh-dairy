@@ -1,3 +1,4 @@
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart } from "lucide-react";
 import { motion } from "motion/react";
@@ -28,6 +29,8 @@ const FALLBACK_IMAGES: Record<string, string> = {
 
 export default function ProductCard({ product, index = 0 }: ProductCardProps) {
   const price = Number(product.price);
+  const quantity = Number(product.quantity ?? 0);
+  const isLowStock = quantity > 0 && quantity < 10;
   const imgSrc =
     product.imageUrl ||
     FALLBACK_IMAGES[product.category] ||
@@ -72,10 +75,15 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
             </span>
           </div>
         )}
-        <div className="absolute top-3 left-3">
+        <div className="absolute top-3 left-3 flex gap-1.5 flex-wrap">
           <span className="bg-brand-purple text-saffron text-xs font-semibold px-2.5 py-1 rounded-full">
             {product.category}
           </span>
+          {isLowStock && (
+            <Badge className="bg-amber-500 text-white text-xs px-2 py-0.5 rounded-full border-0">
+              Low Stock
+            </Badge>
+          )}
         </div>
       </div>
 
@@ -94,6 +102,11 @@ export default function ProductCard({ product, index = 0 }: ProductCardProps) {
               /{product.unit}
             </span>
           </div>
+          {quantity > 0 && (
+            <span className="text-xs text-muted-foreground">
+              Qty: {quantity}
+            </span>
+          )}
         </div>
 
         {/* Add to Cart - primary action */}

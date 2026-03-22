@@ -4,7 +4,9 @@ import Iter "mo:core/Iter";
 import Runtime "mo:core/Runtime";
 import Array "mo:core/Array";
 import Nat "mo:core/Nat";
+import Migration "migration";
 
+(with migration = Migration.run)
 actor {
   type Product = {
     id : Nat;
@@ -14,6 +16,7 @@ actor {
     unit : Text;
     category : Text;
     imageUrl : Text;
+    quantity : Nat;
     isAvailable : Bool;
   };
 
@@ -31,6 +34,7 @@ actor {
     unit = "500ml";
     category = "Milk";
     imageUrl = "https://nanaji-dairy.com/images/milk.jpg";
+    quantity = 100;
     isAvailable = true;
   })].values());
 
@@ -44,6 +48,7 @@ actor {
       unit = "500g";
       category = "Ghee";
       imageUrl = "https://nanaji-dairy.com/images/ghee.jpg";
+      quantity = 50;
       isAvailable = true;
     },
   );
@@ -58,6 +63,7 @@ actor {
       unit = "200g";
       category = "Paneer";
       imageUrl = "https://nanaji-dairy.com/images/paneer.jpg";
+      quantity = 30;
       isAvailable = true;
     },
   );
@@ -72,6 +78,7 @@ actor {
       unit = "250g";
       category = "Sweets";
       imageUrl = "https://nanaji-dairy.com/images/barfi.jpg";
+      quantity = 80;
       isAvailable = true;
     },
   );
@@ -109,5 +116,22 @@ actor {
 
   public query ({ caller }) func getAllContactSubmissions() : async [ContactSubmission] {
     contactSubmissions.values().toArray();
+  };
+
+  public shared ({ caller }) func addProduct(name : Text, description : Text, price : Nat, unit : Text, category : Text, imageUrl : Text, quantity : Nat) : async Nat {
+    let product : Product = {
+      id = nextProductId;
+      name;
+      description;
+      price;
+      unit;
+      category;
+      imageUrl;
+      isAvailable = quantity > 0;
+      quantity;
+    };
+    products.add(nextProductId, product);
+    nextProductId += 1;
+    product.id;
   };
 };

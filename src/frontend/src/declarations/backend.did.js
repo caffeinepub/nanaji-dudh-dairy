@@ -20,11 +20,17 @@ export const Product = IDL.Record({
   'isAvailable' : IDL.Bool,
   'description' : IDL.Text,
   'imageUrl' : IDL.Text,
+  'quantity' : IDL.Nat,
   'category' : IDL.Text,
   'price' : IDL.Nat,
 });
 
 export const idlService = IDL.Service({
+  'addProduct' : IDL.Func(
+      [IDL.Text, IDL.Text, IDL.Nat, IDL.Text, IDL.Text, IDL.Text, IDL.Nat],
+      [IDL.Nat],
+      [],
+    ),
   'getAllContactSubmissions' : IDL.Func(
       [],
       [IDL.Vec(ContactSubmission)],
@@ -51,11 +57,17 @@ export const idlFactory = ({ IDL }) => {
     'isAvailable' : IDL.Bool,
     'description' : IDL.Text,
     'imageUrl' : IDL.Text,
+    'quantity' : IDL.Nat,
     'category' : IDL.Text,
     'price' : IDL.Nat,
   });
   
   return IDL.Service({
+    'addProduct' : IDL.Func(
+        [IDL.Text, IDL.Text, IDL.Nat, IDL.Text, IDL.Text, IDL.Text, IDL.Nat],
+        [IDL.Nat],
+        [],
+      ),
     'getAllContactSubmissions' : IDL.Func(
         [],
         [IDL.Vec(ContactSubmission)],

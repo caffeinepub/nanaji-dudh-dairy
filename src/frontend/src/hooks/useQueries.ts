@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Product } from "../backend.d";
 import { useActor } from "./useActor";
 
@@ -37,6 +37,36 @@ export function useSubmitContact() {
     }) => {
       if (!actor) throw new Error("Not connected");
       return actor.submitContactForm(data.name, data.phone, data.message);
+    },
+  });
+}
+
+export function useAddProduct() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: {
+      name: string;
+      description: string;
+      price: bigint;
+      unit: string;
+      category: string;
+      imageUrl: string;
+      quantity: bigint;
+    }) => {
+      if (!actor) throw new Error("Not connected");
+      return actor.addProduct(
+        data.name,
+        data.description,
+        data.price,
+        data.unit,
+        data.category,
+        data.imageUrl,
+        data.quantity,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["products"] });
     },
   });
 }

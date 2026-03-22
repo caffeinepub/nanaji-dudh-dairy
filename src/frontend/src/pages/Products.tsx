@@ -1,13 +1,32 @@
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Loader2, Plus, Search } from "lucide-react";
 import { motion } from "motion/react";
 import { useState } from "react";
+import { toast } from "sonner";
 import type { Product } from "../backend.d";
 import ProductCard from "../components/ProductCard";
-import { useGetProductsByCategory } from "../hooks/useQueries";
+import { useAddProduct, useGetProductsByCategory } from "../hooks/useQueries";
 
 const CATEGORIES = ["All", "Milk", "Ghee", "Paneer", "Sweets"];
+const PRODUCT_CATEGORIES = ["Milk", "Ghee", "Paneer", "Sweets"];
 
 const FALLBACK_PRODUCTS: Product[] = [
   {
@@ -20,6 +39,7 @@ const FALLBACK_PRODUCTS: Product[] = [
       "Farm-fresh, pure buffalo milk rich in protein and calcium. Delivered daily.",
     imageUrl: "/assets/generated/buffalo-milk.dim_400x400.jpg",
     isAvailable: true,
+    quantity: BigInt(100),
   },
   {
     id: BigInt(2),
@@ -31,6 +51,7 @@ const FALLBACK_PRODUCTS: Product[] = [
       "Rich and creamy full-cream buffalo milk, packed with natural fat and nutrients.",
     imageUrl: "/assets/generated/buffalo-milk.dim_400x400.jpg",
     isAvailable: true,
+    quantity: BigInt(100),
   },
   {
     id: BigInt(3),
@@ -42,6 +63,7 @@ const FALLBACK_PRODUCTS: Product[] = [
       "Handcrafted pure desi ghee made from fresh buffalo cream using traditional methods.",
     imageUrl: "/assets/generated/desi-ghee.dim_400x400.jpg",
     isAvailable: true,
+    quantity: BigInt(100),
   },
   {
     id: BigInt(4),
@@ -52,6 +74,7 @@ const FALLBACK_PRODUCTS: Product[] = [
     description: "Premium desi ghee infused with the finest Kashmir saffron.",
     imageUrl: "/assets/generated/desi-ghee.dim_400x400.jpg",
     isAvailable: true,
+    quantity: BigInt(100),
   },
   {
     id: BigInt(5),
@@ -63,6 +86,7 @@ const FALLBACK_PRODUCTS: Product[] = [
       "Soft, fresh homemade paneer made from pure buffalo milk. Perfect for cooking.",
     imageUrl: "/assets/generated/paneer.dim_400x400.jpg",
     isAvailable: true,
+    quantity: BigInt(100),
   },
   {
     id: BigInt(6),
@@ -74,6 +98,7 @@ const FALLBACK_PRODUCTS: Product[] = [
       "Rich, creamy malai paneer made from extra-thick buffalo milk cream.",
     imageUrl: "/assets/generated/paneer.dim_400x400.jpg",
     isAvailable: true,
+    quantity: BigInt(100),
   },
   {
     id: BigInt(7),
@@ -85,6 +110,7 @@ const FALLBACK_PRODUCTS: Product[] = [
       "Assorted traditional Indian milk sweets made fresh daily with pure buffalo milk.",
     imageUrl: "/assets/generated/milk-sweets.dim_400x400.jpg",
     isAvailable: true,
+    quantity: BigInt(100),
   },
   {
     id: BigInt(8),
@@ -96,15 +122,29 @@ const FALLBACK_PRODUCTS: Product[] = [
       "Pure khoya made by slowly reducing fresh buffalo milk. Perfect for Indian sweets.",
     imageUrl: "/assets/generated/milk-sweets.dim_400x400.jpg",
     isAvailable: true,
+    quantity: BigInt(100),
   },
 ];
+
+const DEFAULT_FORM = {
+  name: "",
+  description: "",
+  price: "",
+  unit: "",
+  category: "",
+  imageUrl: "",
+  quantity: "",
+};
 
 export default function Products() {
   const [activeCategory, setActiveCategory] = useState("All");
   const [search, setSearch] = useState("");
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState(DEFAULT_FORM);
 
   const { data: products, isLoading } =
     useGetProductsByCategory(activeCategory);
+  const addProduct = useAddProduct();
 
   const baseProducts =
     products && products.length > 0 ? products : FALLBACK_PRODUCTS;
@@ -117,6 +157,36 @@ export default function Products() {
       p.description.toLowerCase().includes(search.toLowerCase());
     return matchesCategory && matchesSearch;
   });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (
+      !form.name ||
+      !form.category ||
+      !form.price ||
+      !form.unit ||
+      !form.quantity
+    ) {
+      toast.error("Please fill in all required fields.");
+      return;
+    }
+    try {
+      await addProduct.mutateAsync({
+        name: form.name,
+        description: form.description,
+        price: BigInt(Math.round(Number(form.price))),
+        unit: form.unit,
+        category: form.category,
+        imageUrl: form.imageUrl,
+        quantity: BigInt(Math.round(Number(form.quantity))),
+      });
+      toast.success(`"${form.name}" added successfully!`);
+      setForm(DEFAULT_FORM);
+      setOpen(false);
+    } catch {
+      toast.error("Failed to add product. Please try again.");
+    }
+  };
 
   return (
     <main className="min-h-screen bg-section-bg">
@@ -141,7 +211,7 @@ export default function Products() {
 
       <section className="py-10">
         <div className="container mx-auto px-4">
-          {/* Search + Filter */}
+          {/* Search + Filter + Add Product */}
           <div className="flex flex-col md:flex-row gap-4 mb-8 items-center justify-between">
             <div className="relative w-full md:w-80">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -154,24 +224,213 @@ export default function Products() {
               />
             </div>
 
-            <Tabs
-              value={activeCategory}
-              onValueChange={setActiveCategory}
-              data-ocid="products.tab"
-            >
-              <TabsList className="bg-white border border-border rounded-full p-1">
-                {CATEGORIES.map((cat) => (
-                  <TabsTrigger
-                    key={cat}
-                    value={cat}
-                    data-ocid="products.tab"
-                    className="rounded-full data-[state=active]:bg-brand-purple data-[state=active]:text-white text-sm"
+            <div className="flex items-center gap-3 flex-wrap justify-center">
+              <Tabs
+                value={activeCategory}
+                onValueChange={setActiveCategory}
+                data-ocid="products.tab"
+              >
+                <TabsList className="bg-white border border-border rounded-full p-1">
+                  {CATEGORIES.map((cat) => (
+                    <TabsTrigger
+                      key={cat}
+                      value={cat}
+                      data-ocid="products.tab"
+                      className="rounded-full data-[state=active]:bg-brand-purple data-[state=active]:text-white text-sm"
+                    >
+                      {cat}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </Tabs>
+
+              {/* Add New Product Dialog */}
+              <Dialog open={open} onOpenChange={setOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    className="bg-brand-purple hover:bg-brand-purple/90 text-white rounded-full font-semibold gap-2 px-5 shadow-md"
+                    data-ocid="products.open_modal_button"
                   >
-                    {cat}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </Tabs>
+                    <Plus className="w-4 h-4" />
+                    Add New Product
+                  </Button>
+                </DialogTrigger>
+                <DialogContent
+                  className="max-w-lg max-h-[90vh] overflow-y-auto"
+                  data-ocid="products.dialog"
+                >
+                  <DialogHeader>
+                    <DialogTitle className="font-display text-2xl text-brand-purple">
+                      Add New Product
+                    </DialogTitle>
+                  </DialogHeader>
+
+                  <form onSubmit={handleSubmit} className="space-y-4 mt-2">
+                    {/* Product Name */}
+                    <div className="space-y-1.5">
+                      <Label htmlFor="prod-name">
+                        Product Name <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="prod-name"
+                        placeholder="e.g. Fresh Buffalo Milk"
+                        value={form.name}
+                        onChange={(e) =>
+                          setForm((f) => ({ ...f, name: e.target.value }))
+                        }
+                        data-ocid="products.input"
+                      />
+                    </div>
+
+                    {/* Category */}
+                    <div className="space-y-1.5">
+                      <Label>
+                        Category <span className="text-red-500">*</span>
+                      </Label>
+                      <Select
+                        value={form.category}
+                        onValueChange={(v) =>
+                          setForm((f) => ({ ...f, category: v }))
+                        }
+                      >
+                        <SelectTrigger data-ocid="products.select">
+                          <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {PRODUCT_CATEGORIES.map((cat) => (
+                            <SelectItem key={cat} value={cat}>
+                              {cat}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Price and Unit - row */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="prod-price">
+                          Price (₹) <span className="text-red-500">*</span>
+                        </Label>
+                        <Input
+                          id="prod-price"
+                          type="number"
+                          min="0"
+                          placeholder="e.g. 65"
+                          value={form.price}
+                          onChange={(e) =>
+                            setForm((f) => ({ ...f, price: e.target.value }))
+                          }
+                          data-ocid="products.input"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label htmlFor="prod-unit">
+                          Unit <span className="text-red-500">*</span>
+                        </Label>
+                        <Input
+                          id="prod-unit"
+                          placeholder="e.g. litre, 500g"
+                          value={form.unit}
+                          onChange={(e) =>
+                            setForm((f) => ({ ...f, unit: e.target.value }))
+                          }
+                          data-ocid="products.input"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Quantity */}
+                    <div className="space-y-1.5">
+                      <Label htmlFor="prod-qty">
+                        Stock Quantity <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="prod-qty"
+                        type="number"
+                        min="0"
+                        placeholder="e.g. 50"
+                        value={form.quantity}
+                        onChange={(e) =>
+                          setForm((f) => ({ ...f, quantity: e.target.value }))
+                        }
+                        data-ocid="products.input"
+                      />
+                    </div>
+
+                    {/* Image URL */}
+                    <div className="space-y-1.5">
+                      <Label htmlFor="prod-image">Product Image URL</Label>
+                      <Input
+                        id="prod-image"
+                        placeholder="https://... or leave blank for default"
+                        value={form.imageUrl}
+                        onChange={(e) =>
+                          setForm((f) => ({ ...f, imageUrl: e.target.value }))
+                        }
+                        data-ocid="products.input"
+                      />
+                      {form.imageUrl && (
+                        <img
+                          src={form.imageUrl}
+                          alt="Preview"
+                          className="mt-2 rounded-xl h-24 w-24 object-cover border border-border"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display =
+                              "none";
+                          }}
+                        />
+                      )}
+                    </div>
+
+                    {/* Description */}
+                    <div className="space-y-1.5">
+                      <Label htmlFor="prod-desc">Description</Label>
+                      <Textarea
+                        id="prod-desc"
+                        placeholder="Describe the product..."
+                        rows={3}
+                        value={form.description}
+                        onChange={(e) =>
+                          setForm((f) => ({
+                            ...f,
+                            description: e.target.value,
+                          }))
+                        }
+                        data-ocid="products.textarea"
+                      />
+                    </div>
+
+                    <div className="flex gap-3 pt-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="flex-1 rounded-xl"
+                        onClick={() => setOpen(false)}
+                        data-ocid="products.cancel_button"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="submit"
+                        disabled={addProduct.isPending}
+                        className="flex-1 rounded-xl bg-brand-purple hover:bg-brand-purple/90 text-white font-semibold"
+                        data-ocid="products.submit_button"
+                      >
+                        {addProduct.isPending ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                            Adding...
+                          </>
+                        ) : (
+                          <>Add Product</>
+                        )}
+                      </Button>
+                    </div>
+                  </form>
+                </DialogContent>
+              </Dialog>
+            </div>
           </div>
 
           {/* Products Grid */}
