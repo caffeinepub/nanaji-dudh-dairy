@@ -1,25 +1,25 @@
 # Nanaji Dudh Dairy
 
 ## Current State
-Products page shows a product grid with fallback products. Backend has read-only product queries. No way to add new products from the UI.
+The app has a top Navbar with desktop nav links and a mobile hamburger menu. No bottom navigation exists.
 
 ## Requested Changes (Diff)
 
 ### Add
-- addProduct backend function
-- Add New Product button on Products page
-- Dialog form: product name, category, price/rate, unit, description, image URL, quantity/stock
-- useAddProduct mutation hook
+- Bottom navigation bar visible on mobile screens (md:hidden), fixed at bottom of screen
+- Nav items: Home, Products, Cart (with badge), Contact
+- Active state highlighting with brand-purple color
+- Bottom padding on page content to avoid being hidden behind the bottom nav
 
 ### Modify
-- useQueries.ts: add useAddProduct mutation
-- Products.tsx: add button and dialog
+- App.tsx: add bottom nav component and pb-16 padding on mobile for content area
+- Hide the hamburger mobile menu toggle in Navbar since bottom nav replaces mobile navigation
 
 ### Remove
-- Nothing
+- Nothing removed
 
 ## Implementation Plan
-1. Generate Motoko backend with addProduct
-2. Add mutation hook
-3. Add AddProductDialog component
-4. Wire button on Products page
+1. Create BottomNav component with Home, Products, Cart (badge), Contact icons and labels
+2. Add BottomNav to App.tsx root layout
+3. Add bottom padding (pb-16 md:pb-0) to the main content wrapper so content isn't hidden
+4. Adjust Navbar to hide mobile menu toggle on mobile since bottom nav handles navigation

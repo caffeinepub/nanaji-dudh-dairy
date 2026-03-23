@@ -4,9 +4,9 @@ import Iter "mo:core/Iter";
 import Runtime "mo:core/Runtime";
 import Array "mo:core/Array";
 import Nat "mo:core/Nat";
-import Migration "migration";
 
-(with migration = Migration.run)
+
+
 actor {
   type Product = {
     id : Nat;

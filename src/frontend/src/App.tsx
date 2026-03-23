@@ -6,8 +6,10 @@ import {
   createRoute,
   createRouter,
 } from "@tanstack/react-router";
+import BottomNav from "./components/BottomNav";
 import FloatingWhatsApp from "./components/FloatingWhatsApp";
 import Footer from "./components/Footer";
+import MarqueeBanner from "./components/MarqueeBanner";
 import Navbar from "./components/Navbar";
 import { CartProvider } from "./context/CartContext";
 import Contact from "./pages/Contact";
@@ -18,11 +20,13 @@ const rootRoute = createRootRoute({
   component: () => (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      <div className="flex-1">
+      <MarqueeBanner />
+      <div className="flex-1 pb-16 md:pb-0">
         <Outlet />
       </div>
       <Footer />
       <FloatingWhatsApp />
+      <BottomNav />
       <Toaster position="top-right" />
     </div>
   ),
