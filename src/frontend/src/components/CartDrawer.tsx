@@ -11,18 +11,21 @@ import {
 } from "@/components/ui/sheet";
 import {
   Check,
+  ChevronDown,
   ChevronLeft,
+  ChevronUp,
   Copy,
   CreditCard,
   MapPin,
   Minus,
+  Phone,
   Plus,
   ShoppingCart,
   Trash2,
   Truck,
   Wallet,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { SiWhatsapp } from "react-icons/si";
 import { toast } from "sonner";
 import { useCart } from "../context/CartContext";
@@ -131,6 +134,46 @@ function StepIndicator({ current }: { current: Step }) {
   );
 }
 
+function DrawerFooter() {
+  return (
+    <div className="flex-shrink-0" data-ocid="cart.panel">
+      <div className="h-0.5 bg-saffron" />
+      <div className="bg-brand-purple px-5 py-3 flex flex-col items-center gap-0.5">
+        <p className="text-white font-bold text-sm tracking-wide">
+          🥛 Nanaji Dudh Dairy
+        </p>
+        <p className="text-saffron text-xs font-semibold">+91 78209 57013</p>
+        <p className="text-white/60 text-[10px]">
+          © {new Date().getFullYear()} Nanaji Dudh Dairy. Fresh from the farm.
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function AddressStepFooter() {
+  return (
+    <div
+      className="mt-2 rounded-xl overflow-hidden border border-brand-purple/20"
+      data-ocid="cart.panel"
+    >
+      <div className="h-0.5 bg-saffron" />
+      <div className="bg-brand-purple px-4 py-3 flex flex-col items-center gap-1">
+        <p className="text-white font-bold text-sm tracking-wide">
+          🥛 Fresh from farm to your doorstep
+        </p>
+        <div className="flex items-center gap-1.5 text-saffron text-xs font-semibold">
+          <Phone className="w-3 h-3" />
+          <span>+91 78209 57013</span>
+        </div>
+        <p className="text-white/60 text-[10px] text-center">
+          © {new Date().getFullYear()} Nanaji Dudh Dairy. All rights reserved.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export default function CartDrawer() {
   const {
     items,
@@ -154,6 +197,59 @@ export default function CartDrawer() {
     street: "",
     landmark: "",
   });
+  const [vpHeight, setVpHeight] = useState<number>(
+    typeof window !== "undefined" ? window.innerHeight : 800,
+  );
+
+  const addressScrollRef = useRef<HTMLDivElement>(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const [showScrollBottom, setShowScrollBottom] = useState(false);
+
+  const paymentScrollRef = useRef<HTMLDivElement>(null);
+  const [showPayScrollTop, setShowPayScrollTop] = useState(false);
+  const [showPayScrollBottom, setShowPayScrollBottom] = useState(false);
+
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const update = () => setVpHeight(vv.height + vv.offsetTop);
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    return () => {
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+    };
+  }, []);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally re-run when step changes
+  useEffect(() => {
+    const el = addressScrollRef.current;
+    if (!el) return;
+    const handleScroll = () => {
+      setShowScrollTop(el.scrollTop > 100);
+      setShowScrollBottom(
+        el.scrollTop + el.clientHeight < el.scrollHeight - 50,
+      );
+    };
+    handleScroll();
+    el.addEventListener("scroll", handleScroll);
+    return () => el.removeEventListener("scroll", handleScroll);
+  }, [step]);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally re-run when step or paymentMethod changes
+  useEffect(() => {
+    const el = paymentScrollRef.current;
+    if (!el) return;
+    const handleScroll = () => {
+      setShowPayScrollTop(el.scrollTop > 100);
+      setShowPayScrollBottom(
+        el.scrollTop + el.clientHeight < el.scrollHeight - 50,
+      );
+    };
+    handleScroll();
+    el.addEventListener("scroll", handleScroll);
+    return () => el.removeEventListener("scroll", handleScroll);
+  }, [step, paymentMethod]);
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(UPI_ID);
@@ -388,8 +484,19 @@ export default function CartDrawer() {
             </div>
           </ScrollArea>
         ) : step === "address" ? (
-          <ScrollArea className="flex-1">
-            <div className="px-5 py-4 space-y-4">
+          /* Address step: fields scroll, submit button always visible at bottom */
+          <div
+            className="flex flex-col flex-1 min-h-0 relative"
+            style={{ maxHeight: `calc(${vpHeight}px - 120px)` }}
+          >
+            {/* Scrollable fields area */}
+            <div
+              ref={addressScrollRef}
+              className="overflow-y-auto flex-1 min-h-0 px-5 py-4 space-y-4"
+              style={
+                { WebkitOverflowScrolling: "touch" } as React.CSSProperties
+              }
+            >
               <p className="text-sm text-muted-foreground">
                 We'll deliver to this address and share it on WhatsApp.
               </p>
@@ -406,6 +513,7 @@ export default function CartDrawer() {
                       setAddress((a) => ({ ...a, name: e.target.value }))
                     }
                     className="rounded-xl"
+                    data-ocid="cart.input"
                   />
                 </div>
                 <div>
@@ -424,6 +532,7 @@ export default function CartDrawer() {
                       }))
                     }
                     className="rounded-xl"
+                    data-ocid="cart.input"
                   />
                 </div>
                 <div>
@@ -441,6 +550,7 @@ export default function CartDrawer() {
                       }))
                     }
                     className="rounded-xl"
+                    data-ocid="cart.input"
                   />
                 </div>
                 <div>
@@ -454,6 +564,7 @@ export default function CartDrawer() {
                       setAddress((a) => ({ ...a, townVillage: e.target.value }))
                     }
                     className="rounded-xl"
+                    data-ocid="cart.input"
                   />
                 </div>
                 <div>
@@ -467,6 +578,7 @@ export default function CartDrawer() {
                       setAddress((a) => ({ ...a, city: e.target.value }))
                     }
                     className="rounded-xl"
+                    data-ocid="cart.input"
                   />
                 </div>
                 <div>
@@ -480,6 +592,7 @@ export default function CartDrawer() {
                       setAddress((a) => ({ ...a, street: e.target.value }))
                     }
                     className="rounded-xl"
+                    data-ocid="cart.input"
                   />
                 </div>
                 <div>
@@ -493,25 +606,90 @@ export default function CartDrawer() {
                       setAddress((a) => ({ ...a, landmark: e.target.value }))
                     }
                     className="rounded-xl"
+                    data-ocid="cart.input"
+                    onFocus={() => {
+                      setTimeout(() => {
+                        document
+                          .getElementById("address-submit")
+                          ?.scrollIntoView({
+                            behavior: "smooth",
+                            block: "nearest",
+                          });
+                      }, 400);
+                    }}
                   />
                 </div>
               </div>
 
-              <div className="pt-2 pb-4">
-                <Button
-                  onClick={handleAddressNext}
-                  className="w-full bg-brand-purple hover:bg-brand-purple-light text-white rounded-xl py-6 font-bold text-base gap-2"
-                >
-                  <Wallet className="w-5 h-5" />
-                  Continue to Payment
-                </Button>
+              {/* Address page inline footer */}
+              <div className="pb-4">
+                <AddressStepFooter />
               </div>
             </div>
-          </ScrollArea>
+
+            {/* Submit button — always visible, outside the scroll area */}
+            <div
+              id="address-submit"
+              className="flex-shrink-0 px-5 py-3 border-t border-border bg-white"
+            >
+              <Button
+                onClick={handleAddressNext}
+                className="w-full bg-brand-purple hover:bg-brand-purple-light text-white rounded-xl py-6 font-bold text-base gap-2"
+                data-ocid="cart.submit_button"
+              >
+                <Wallet className="w-5 h-5" />
+                Continue to Payment
+              </Button>
+            </div>
+
+            {/* Floating scroll buttons */}
+            {showScrollTop && (
+              <button
+                type="button"
+                onClick={() =>
+                  addressScrollRef.current?.scrollTo({
+                    top: 0,
+                    behavior: "smooth",
+                  })
+                }
+                className="absolute right-4 bottom-36 z-10 w-9 h-9 rounded-full bg-brand-purple text-white shadow-lg flex items-center justify-center opacity-80 hover:opacity-100 transition-opacity"
+                aria-label="Scroll to top"
+                data-ocid="cart.toggle"
+              >
+                <ChevronUp className="w-5 h-5" />
+              </button>
+            )}
+            {showScrollBottom && (
+              <button
+                type="button"
+                onClick={() =>
+                  addressScrollRef.current?.scrollTo({
+                    top: addressScrollRef.current.scrollHeight,
+                    behavior: "smooth",
+                  })
+                }
+                className="absolute right-4 bottom-24 z-10 w-9 h-9 rounded-full bg-brand-purple text-white shadow-lg flex items-center justify-center opacity-80 hover:opacity-100 transition-opacity"
+                aria-label="Scroll to bottom"
+                data-ocid="cart.toggle"
+              >
+                <ChevronDown className="w-5 h-5" />
+              </button>
+            )}
+          </div>
         ) : (
-          /* Payment Step */
-          <ScrollArea className="flex-1">
-            <div className="px-5 py-4 space-y-4">
+          /* Payment Step — scrollable with floating buttons, Place Order pinned at bottom */
+          <div
+            className="flex flex-col flex-1 min-h-0 relative"
+            style={{ maxHeight: `calc(${vpHeight}px - 120px)` }}
+          >
+            {/* Scrollable payment content */}
+            <div
+              ref={paymentScrollRef}
+              className="overflow-y-auto flex-1 min-h-0 px-5 py-4 space-y-4"
+              style={
+                { WebkitOverflowScrolling: "touch" } as React.CSSProperties
+              }
+            >
               <p className="text-sm text-muted-foreground">
                 Choose how you'd like to pay for your order.
               </p>
@@ -694,6 +872,16 @@ export default function CartDrawer() {
                 </div>
               </div>
 
+              <div className="text-center pb-4">
+                <p className="text-xs text-muted-foreground">
+                  Your order details, address, and payment method will be sent
+                  to our WhatsApp for confirmation.
+                </p>
+              </div>
+            </div>
+
+            {/* Place Order button — always visible, pinned at bottom */}
+            <div className="flex-shrink-0 px-5 py-3 border-t border-border bg-white">
               <Button
                 onClick={handlePlaceOrder}
                 className="w-full bg-whatsapp hover:bg-whatsapp/90 text-white rounded-xl py-6 font-bold text-base gap-2"
@@ -702,16 +890,45 @@ export default function CartDrawer() {
                 <SiWhatsapp className="w-5 h-5" />
                 Place Order on WhatsApp
               </Button>
-
-              <div className="text-center pb-4">
-                <p className="text-xs text-muted-foreground">
-                  Your order details, address, and payment method will be sent
-                  to our WhatsApp for confirmation.
-                </p>
-              </div>
             </div>
-          </ScrollArea>
+
+            {/* Floating scroll buttons */}
+            {showPayScrollTop && (
+              <button
+                type="button"
+                onClick={() =>
+                  paymentScrollRef.current?.scrollTo({
+                    top: 0,
+                    behavior: "smooth",
+                  })
+                }
+                className="absolute right-4 bottom-36 z-10 w-9 h-9 rounded-full bg-brand-purple text-white shadow-lg flex items-center justify-center opacity-80 hover:opacity-100 transition-opacity"
+                aria-label="Scroll to top"
+                data-ocid="cart.toggle"
+              >
+                <ChevronUp className="w-5 h-5" />
+              </button>
+            )}
+            {showPayScrollBottom && (
+              <button
+                type="button"
+                onClick={() =>
+                  paymentScrollRef.current?.scrollTo({
+                    top: paymentScrollRef.current.scrollHeight,
+                    behavior: "smooth",
+                  })
+                }
+                className="absolute right-4 bottom-24 z-10 w-9 h-9 rounded-full bg-brand-purple text-white shadow-lg flex items-center justify-center opacity-80 hover:opacity-100 transition-opacity"
+                aria-label="Scroll to bottom"
+                data-ocid="cart.toggle"
+              >
+                <ChevronDown className="w-5 h-5" />
+              </button>
+            )}
+          </div>
         )}
+
+        <DrawerFooter />
       </SheetContent>
     </Sheet>
   );
